@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-jobs
+  namespace: ai-jobs
+spec:
+  rules:
+    - host: ai-jobs-b.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-jobs
+                port:
+                  number: 80

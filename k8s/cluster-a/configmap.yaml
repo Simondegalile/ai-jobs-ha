@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-jobs-config
+  namespace: ai-jobs
+data:
+  CLUSTER_NAME: "cluster-a"
+  APP_TITLE: "AI Jobs Market Dashboard"
