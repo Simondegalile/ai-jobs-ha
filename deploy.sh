@@ -7,6 +7,10 @@ if [ "$CLUSTER" != "cluster-a" ] && [ "$CLUSTER" != "cluster-b" ]; then
   exit 1
 fi
 
+if ! command -v curl > /dev/null; then
+  apt-get install -y curl
+fi
+
 if ! command -v docker > /dev/null; then
   apt-get update
   apt-get install -y docker.io
