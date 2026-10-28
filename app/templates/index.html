@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ titre }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>{{ titre }}</h1>
+    <div class="infra">
+      Cluster : <b>{{ cluster }}</b> | Pod : <b>{{ pod }}</b> | Node : <b>{{ node }}</b>
+    </div>
+  </header>
+
+  <main>
+    <section class="filters">
+      <form method="get" action="/">
+        <label>Pays
+          <select name="country">
+            <option value="Tous">Tous</option>
+            {% for p in liste_pays %}
+            <option value="{{ p }}" {% if p == pays %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Catégorie
+          <select name="category">
+            <option value="Tous">Toutes</option>
+            {% for c in liste_categories %}
+            <option value="{{ c }}" {% if c == categorie %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Filtrer</button>
+        <a href="/">Réinitialiser</a>
+      </form>
+    </section>
+
+    <section class="kpis">
+      <div class="kpi"><span>Offres</span><b>{{ stats.jobs }}</b></div>
+      <div class="kpi"><span>Salaire moyen</span><b>{{ stats.avg_salary | nombre }} $</b></div>
+      <div class="kpi"><span>Salaire médian</span><b>{{ stats.median_salary | nombre }} $</b></div>
+      <div class="kpi"><span>Min / Max</span><b>{{ stats.min_salary | nombre }} / {{ stats.max_salary | nombre }} $</b></div>
+      <div class="kpi"><span>Demand score moyen</span><b>{{ stats.avg_demand }}</b></div>
+      <div class="kpi"><span>Remote-friendly</span><b>{{ stats.remote_pct }} %</b></div>
+      <div class="kpi"><span>Rôles LLM</span><b>{{ stats.llm_pct }} %</b></div>
+    </section>
+
+    <section class="charts">
+      <div class="chart"><h2>Salaire moyen par catégorie</h2><canvas id="c1"></canvas></div>
+      <div class="chart"><h2>Offres par pays (top 10)</h2><canvas id="c2"></canvas></div>
+      <div class="chart"><h2>Demand score par catégorie</h2><canvas id="c3"></canvas></div>
+      <div class="chart"><h2>Compétences les plus demandées</h2><canvas id="c4"></canvas></div>
+      <div class="chart"><h2>Salaire moyen : LLM vs autres</h2><canvas id="c5"></canvas></div>
+    </section>
+
+    <section class="table">
+      <h2>Offres (20 premières)</h2>
+      <table>
+        <tr><th>ID</th><th>Poste</th><th>Catégorie</th><th>Pays</th><th>Niveau</th><th>Salaire</th><th>Demande</th></tr>
+        {% for l in lignes %}
+        <tr>
+          <td>{{ l.job_id }}</td><td>{{ l.job_title }}</td><td>{{ l.job_category }}</td><td>{{ l.country }}</td>
+          <td>{{ l.experience_level }}</td><td>{{ l.annual_salary_usd | nombre }} $</td><td>{{ l.demand_score }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </section>
+  </main>
+
+  <script>
+    var graphiques = {{ graphiques | tojson }};
+
+    function dessiner(id, donnees, horizontal) {
+      var labels = [];
+      var valeurs = [];
+      for (var i = 0; i < donnees.length; i++) {
+        labels.push(donnees[i].label);
+        valeurs.push(donnees[i].value);
+      }
+      var options = { plugins: { legend: { display: false } } };
+      if (horizontal) {
+        options.indexAxis = "y";
+      }
+      new Chart(document.getElementById(id), {
+        type: "bar",
+        data: { labels: labels, datasets: [{ data: valeurs, backgroundColor: "#3b6ea5" }] },
+        options: options
+      });
+    }
+
+    dessiner("c1", graphiques.salaire_categorie, true);
+    dessiner("c2", graphiques.offres_pays, false);
+    dessiner("c3", graphiques.demande_categorie, true);
+    dessiner("c4", graphiques.competences, true);
+    dessiner("c5", graphiques.llm, false);
+  </script>
+</body>
+</html>
