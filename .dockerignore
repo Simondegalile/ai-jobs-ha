@@ -1,0 +1,5 @@
+k8s
+docs
+tests
+*.md
+__pycache__
